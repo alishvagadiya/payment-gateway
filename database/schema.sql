@@ -2,7 +2,7 @@
 
 -- accounts table
 CREATE TABLE IF NOT EXISTS accounts (
-  account_number VARCHAR(20) PRIMARY KEY,
+  account_id VARCHAR(20) PRIMARY KEY,
   balance NUMERIC(20,7) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS transactions (
   amount NUMERIC(20,7) NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'processing',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_source_account FOREIGN KEY (source_account_id) REFERENCES accounts(account_number),
-  CONSTRAINT fk_destination_account FOREIGN KEY (destination_account_id) REFERENCES accounts(account_number),
+  CONSTRAINT fk_source_account FOREIGN KEY (source_account_id) REFERENCES accounts(account_id),
+  CONSTRAINT fk_destination_account FOREIGN KEY (destination_account_id) REFERENCES accounts(account_id),
   CONSTRAINT positive_amount CHECK (amount > 0)
 );
 

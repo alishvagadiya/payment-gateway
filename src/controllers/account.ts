@@ -4,7 +4,7 @@ import { AccountService } from "../services/account.js"
 
 export async function createAccount(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const {initial_balance, account_number} = req.body ?? {};
+    const {initial_balance, account_id} = req.body ?? {};
     if(initial_balance <= 0){
       resJson(res, 400, {
         status_codes: 400,
@@ -14,7 +14,7 @@ export async function createAccount(req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const dbResponse = await AccountService.createAccount(account_number,initial_balance);
+    const dbResponse = await AccountService.createAccount(account_id,initial_balance);
 
     resJson(res, 201, {
       data: {
@@ -29,17 +29,17 @@ export async function createAccount(req: Request, res: Response, next: NextFunct
 
 export async function getBalance(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const { account_number} = req.params ?? {};
-    if(!account_number || typeof account_number !== 'string'){
+    const { account_id} = req.params ?? {};
+    if(!account_id || typeof account_id !== 'string'){
       resJson(res, 400, {
         status_codes: 400,
         error_code: 'INVALID_REQUEST',
-        error_message: 'account_number is required'
+        error_message: 'account_id is required'
       })
       return;
     }
 
-    const dbResponse = await AccountService.getAccountBalance(account_number);
+    const dbResponse = await AccountService.getAccountBalance(account_id);
 
     resJson(res, 200, {
       ...dbResponse

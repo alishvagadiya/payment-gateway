@@ -10,7 +10,7 @@ app.use(express.urlencoded({extended: true, limit: '100mb'}));
 // routes
 app.get('/',(req, res)=>{ res.json({ message: "welcome"}) })
 app.post('/account', createAccount);
-app.get('/account/:account_number', getBalance)
+app.get('/account/:account_id', getBalance)
 app.post('/transaction', processTransaction)
 
 app.use(errorHandler);

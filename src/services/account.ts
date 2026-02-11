@@ -1,22 +1,22 @@
 import { pool } from "../dbConnect.js";
 
 export class Account {
-  async createAccount(account_number:string,initial_balance: number) {
+  async createAccount(account_id:string,initial_balance: number) {
     if (initial_balance < 0) {
       throw new Error('Initial Balance Cannot be negative.');
     }
 
     const query = `
-      INSERT INTO accounts(account_number, balance) 
+      INSERT INTO accounts(account_id, balance) 
       VALUES ($1, $2)
-      RETURNING account_number, balance, created_at
+      RETURNING account_id, balance, created_at
     `;
     try {
-      const result = await pool.query(query,[account_number, initial_balance.toString()]);
+      const result = await pool.query(query,[account_id, initial_balance.toString()]);
       const row = result.rows[0];
 
       return {
-        account_number: row.account_number,
+        account_id: row.account_id,
         balance: row.balance,
         created_at: row.created_at
       };
@@ -25,17 +25,17 @@ export class Account {
     }
   }
 
-  async getAccountBalance(account_number:string) {
+  async getAccountBalance(account_id:string) {
     const query = `
-      SELECT account_number, balance, created_at FROM accounts
-      WHERE account_number = $1;
+      SELECT account_id, balance, created_at FROM accounts
+      WHERE account_id = $1;
     `;
     try {
-      const result = await pool.query(query,[account_number]);
+      const result = await pool.query(query,[account_id]);
       const row = result.rows[0];
 
       return {
-        account_number: row.account_number,
+        account_id: row.account_id,
         balance: row.balance,
         created_at: row.created_at
       };
