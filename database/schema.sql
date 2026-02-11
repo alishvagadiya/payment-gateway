@@ -30,5 +30,6 @@ END;
 $$ language 'plpgsql';
 
 -- trigger to auto update updated_at
+DROP TRIGGER IF EXISTS update_accounts_updated_at ON accounts;
 CREATE TRIGGER update_accounts_updated_at BEFORE UPDATE ON accounts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
