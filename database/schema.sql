@@ -1,11 +1,9 @@
 -- PAYMENT GATEWAY BACKEND DATABASE SCHEMA
--- amount will be stored in non decimal number
--- For Ex ->  100 -> 10000, 1 -> 100, 0.01 -> 1, 101.10-> 10110
 
 -- accounts table
 CREATE TABLE IF NOT EXISTS accounts (
   account_number VARCHAR(20) PRIMARY KEY,
-  balance BIGINT NOT NULL DEFAULT 0,
+  balance NUMERIC(20,7) NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -15,7 +13,7 @@ CREATE TABLE IF NOT EXISTS transactions (
   transaction_id SERIAL PRIMARY KEY,
   source_account_id VARCHAR(20) NOT NULL,
   destination_account_id VARCHAR(20) NOT NULL,
-  amount BIGINT NOT NULL,
+  amount NUMERIC(20,7) NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'processing',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_source_account FOREIGN KEY (source_account_id) REFERENCES accounts(account_number),
