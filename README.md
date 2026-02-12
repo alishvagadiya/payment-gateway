@@ -94,10 +94,16 @@ Server starts on port `3000` by default.
 
 ## API Reference
 
-### Create Account
+> All endpoints are versioned. Use `/v1/` for synchronous (direct DB) processing, `/v2/` for async queue-based processing.
+
+---
+
+### V1 — Synchronous
+
+#### Create Account
 
 ```
-POST /account
+POST /v1/account
 ```
 
 **Body:**
@@ -122,10 +128,10 @@ POST /account
 
 ---
 
-### Get Balance
+#### Get Balance
 
 ```
-GET /account/:account_id
+GET /v1/account/:account_id
 ```
 
 **Response `200`:**
@@ -139,10 +145,10 @@ GET /account/:account_id
 
 ---
 
-### Process Transaction
+#### Process Transaction
 
 ```
-POST /transactions
+POST /v1/transactions
 ```
 
 **Body:**
@@ -157,6 +163,68 @@ POST /transactions
 **Response `201`:**
 ```json
 {
+  "transaction_id": 1,
+  "source_account_id": "ACC001",
+  "destination_account_id": "ACC002",
+  "amount": "100.2500000",
+  "created_at": "2026-02-12T10:00:00.000Z"
+}
+```
+
+---
+
+### V2 — Async Queue
+
+#### Create Account (same as V1)
+
+```
+POST /v2/account
+```
+
+#### Get Balance (same as V1)
+
+```
+GET /v2/account/:account_id
+```
+
+#### Queue a Transaction
+
+```
+POST /v2/transactions
+```
+
+**Body:** same as V1
+
+**Response `202`:**
+```json
+{
+  "jobId": "TXN-1234567890-abc1234",
+  "status": "Processing"
+}
+```
+
+---
+
+#### Get Transaction Status
+
+```
+GET /v2/transactions/status/:jobId
+```
+
+**Response `200` (processing):**
+```json
+{
+  "request_id": "req-...",
+  "status": "PROCESSING",
+  "queue_position": 3
+}
+```
+
+**Response `200` (success):**
+```json
+{
+  "request_id": "req-...",
+  "status": "SUCCESS",
   "transaction_id": 1,
   "source_account_id": "ACC001",
   "destination_account_id": "ACC002",
@@ -184,6 +252,7 @@ npm run test:coverage
 ```
 
 Tests are split into:
+
 - **Unit tests** — controllers and services with mocked dependencies (`tests/unit/`)
 - **Integration tests** — full API against a real test DB (`tests/integration/`)
 
@@ -203,6 +272,8 @@ src/
 ├── services/
 │   ├── account.ts
 │   └── transaction.ts
+├── queue/
+│   └── transaction-queue.ts  # Async in-memory transaction queue
 └── utils/
     ├── loggers.ts          # File-rotation logger
     └── utils.ts            # Response helper, ID generator
@@ -234,3 +305,13 @@ tests/
 
 - **Concurrency and less query**: Transactions use `SELECT ... FOR UPDATE` and lock both account with oldest-account-first lock ordering to prevent deadlocks.
 - **Log rotation**: Log files rotate based on a configurable time interval (default: 1 hour). On server restart, the latest log file is resumed if still within the rotation window.
+
+### 1.0.0
+
+- **Load Handling using queue**:
+  - old approach - earlier transaction processing path
+    - client -> controller -> service -> db.
+  - new approach
+    - client -> controller -> queue -> service -> db.
+    - now all transaction are added to in-memory queue and start processing in concurrently (up to DB_MAX_CONNECTIONS parallel worker), when worker completes the next job from queue to fills that slot which prevents db connection pool exhaustion under high load.
+    - end point will return job id, which client poll and fetch result after timeinterval.

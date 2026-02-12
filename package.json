@@ -1,6 +1,6 @@
 {
     "name": "payment-gateway",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "description": "Payment-gateway transaction system backend for tech details check README file",
     "main": "dist/index.js",
     "scripts": {

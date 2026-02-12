@@ -24,7 +24,7 @@ afterAll(async () => {
 describe('POST /transactions', () => {
   it('should process transaction and return 201', async () => {
     const res = await request(app)
-      .post('/transactions')
+      .post('/v1/transactions')
       .send({ source_account_id: SRC, destination_account_id: DST, amount: 100 });
 
     expect(res.status).toBe(201);
@@ -34,7 +34,7 @@ describe('POST /transactions', () => {
 
   it('should return 400 for missing fields', async () => {
     const res = await request(app)
-      .post('/transactions')
+      .post('/v1/transactions')
       .send({ source_account_id: SRC });
 
     expect(res.status).toBe(400);
@@ -43,7 +43,7 @@ describe('POST /transactions', () => {
 
   it('should return 400 for negative amount', async () => {
     const res = await request(app)
-      .post('/transactions')
+      .post('/v1/transactions')
       .send({ source_account_id: SRC, destination_account_id: DST, amount: -50 });
 
     expect(res.status).toBe(400);
@@ -51,7 +51,7 @@ describe('POST /transactions', () => {
 
   it('should return 400 for same account transfer', async () => {
     const res = await request(app)
-      .post('/transactions')
+      .post('/v1/transactions')
       .send({ source_account_id: SRC, destination_account_id: SRC, amount: 100 });
 
     expect(res.status).toBe(400);
@@ -59,7 +59,7 @@ describe('POST /transactions', () => {
 
   it('should return 500 for insufficient balance', async () => {
     const res = await request(app)
-      .post('/transactions')
+      .post('/v1/transactions')
       .send({ source_account_id: SRC, destination_account_id: DST, amount: 999999 });
 
     expect(res.status).toBe(500);
@@ -67,7 +67,7 @@ describe('POST /transactions', () => {
 
   it('should return 500 for non-existent account', async () => {
     const res = await request(app)
-      .post('/transactions')
+      .post('/v1/transactions')
       .send({ source_account_id: 'GHOST-001', destination_account_id: DST, amount: 10 });
 
     expect(res.status).toBe(500);
