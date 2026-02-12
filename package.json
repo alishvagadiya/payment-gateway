@@ -7,7 +7,11 @@
         "build": "tsc",
         "dev": "tsx src/index.ts",
         "dev:nodemon": "nodemon src/index.ts",
-        "start": "node dist/index.js"
+        "start": "node dist/index.js",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
+        "test:db:setup": "bash database/setup-test.sh"
     },
     "keywords": [],
     "author": "",
