@@ -27,6 +27,7 @@ interface LoggerConfig{
   logFileTimeInterval?: LogFileTimeInterval;
   serverEnv?: string;
 }
+
 class Logger{
   private logLevel: LogLevel;
   private config: LoggerConfig;
@@ -35,41 +36,62 @@ class Logger{
   constructor(config?: LoggerConfig){
     const envLevel = process.env.LOG_LEVEL?.toUpperCase() || 'INFO';
     this.logLevel = LogLevel[envLevel as keyof typeof LogLevel];
-    LogLevel.INFO;
 
     this.config = {
       logToFile: config?.logToFile ?? (process.env.LOG_TO_FILE === 'true'),
       logDir: config?.logDir ?? process.env.LOG_DIR ?? './log',
-      logFileTimeInterval: config?.logFileTimeInterval ?? 
+      logFileTimeInterval: config?.logFileTimeInterval ??
         (process.env.LOG_FILE_TIME_INTERVAL
           ? LogFileTimeInterval[process.env.LOG_FILE_TIME_INTERVAL as keyof typeof LogFileTimeInterval] ?? LogFileTimeInterval.D1
           : LogFileTimeInterval.D1),
       serverEnv: process.env.ENV ?? 'dev'
     }
+
     if(this.config.logToFile && this.config.logDir){
       if(!fs.existsSync(this.config.logDir)){
         fs.mkdirSync(this.config.logDir,{ recursive: true});
       }
+      this.currentLogFile = this.latestLogFile();
     }
+  }
+
+  private latestLogFile(): string | null {
+    const logDir = this.config.logDir!;
+    const interval = this.config.logFileTimeInterval ?? LogFileTimeInterval.D1;
+    try {
+      const files = fs.readdirSync(logDir)
+        .filter(f => f.startsWith('app_') && f.endsWith('.log'))
+        .sort()
+        .reverse(); // most recent first
+
+      for (const file of files) {
+        const fullPath = path.join(logDir, file);
+        const createdAt = this.extractTimeFromLogFile(fullPath);
+        if (createdAt && (Date.now() - createdAt.getTime()) < interval) {
+          return fullPath; // resume existing file
+        }
+      }
+    } catch {
+      // ignore, will create new file on first write
+    }
+    return null;
   }
 
   private extractTimeFromLogFile(filename: string): Date | null {
     try {
-      const timeStamp = filename.split('_')[1].replace('.log','');
-      const isoLike = timeStamp.replace(/T(\d{2})-(\d{2})-(\d{2})/,
-'T$1:$2:$3');
+      const base = path.basename(filename, '.log').split('_')[1] || '';
+      const isoLike = base.replace(/T(\d{2})-(\d{2})-(\d{2})/, 'T$1:$2:$3') + 'Z';
       const date = new Date(isoLike);
       return isNaN(date.getTime()) ? null : date;
     } catch {
       return null;
     }
   }
+
   private getLogFilePath(): string | null{
     if (!this.config.logToFile || !this.config.logDir) return null;
 
-    const now = Date.now();
-    const interval = this.config.logFileTimeInterval ??
-    LogFileTimeInterval.D1;
+    const interval = this.config.logFileTimeInterval ?? LogFileTimeInterval.D1;
 
     if (this.currentLogFile) {
       const fileCreatedAt = this.extractTimeFromLogFile(this.currentLogFile);
@@ -78,13 +100,12 @@ class Logger{
       }
     }
 
-    const ts = new Date().toISOString().replace(/:/g, '-').replace(/\..+/,
-    '');
+    const ts = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
     this.currentLogFile = path.join(this.config.logDir, `app_${ts}.log`);
     return this.currentLogFile;
   }
 
-  private formateLogAndWrite(level: LogLevel, message: string, context?:LogContext):string {
+  private formateLogAndWrite(level: LogLevel, message: string, context?:LogContext):void {
     const logEntry = {
       timeStamp : new Date().toString(),
       level,
