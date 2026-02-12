@@ -1,11 +1,16 @@
 import type { Request, Response, NextFunction } from "express";
-import { resJson } from "../utils.js";
+import { resJson } from "../utils/utils.js";
 import { AccountService } from "../services/account.js"
+import { logger } from "../utils/loggers.js";
 
 export async function createAccount(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const requestId = (req as any).requestId;
   try {
     const {initial_balance, account_id} = req.body ?? {};
+
+    logger.info('Creating account', {requestId, account_id, initial_balance})
     if(initial_balance <= 0){
+      logger.warn('Account creation failed - invalid initial balance', {requestId, account_id, initial_balance})
       resJson(res, 400, {
         status_codes: 400,
         error_code: 'INVALID_REQUEST',
@@ -23,23 +28,28 @@ export async function createAccount(req: Request, res: Response, next: NextFunct
       return;
     }
 
-    const dbResponse = await AccountService.createAccount(account_id,initial_balance);
+    const dbResponse = await AccountService.createAccount(requestId, account_id,initial_balance);
 
+    logger.info('Account created successfully', {requestId, ...dbResponse})
     resJson(res, 201, {
       data: {
         ...dbResponse
       },
       message: 'Account created successfully'
     })
-  } catch (err){
-    next(err)
+  } catch (error){
+    logger.error('Account creation failed', {requestId, error})
+    next(error)
   }
 }
 
 export async function getBalance(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const requestId = (req as any).requestId;
   try {
     const { account_id } = req.params ?? {};
+    logger.info('Account balance requested', {requestId, account_id})
     if(!account_id || typeof account_id !== 'string'){
+      logger.warn('Account balance requested - invalid account id', {requestId, account_id})
       resJson(res, 400, {
         status_codes: 400,
         error_code: 'INVALID_REQUEST',
@@ -48,12 +58,14 @@ export async function getBalance(req: Request, res: Response, next: NextFunction
       return;
     }
 
-    const dbResponse = await AccountService.getAccountBalance(account_id);
+    const dbResponse = await AccountService.getAccountBalance(requestId, account_id);
 
+    logger.info('Account balance retrieved', {requestId, ...dbResponse})
     resJson(res, 200, {
       ...dbResponse
     })
-  } catch (err){
-    next(err)
+  } catch (error){
+    logger.error('Account balance retrieval failed', {requestId, error})
+    next(error)
   }
 }
