@@ -1,4 +1,7 @@
 .history/*
 node_modules/*
 .env
+.env.test
 logs/*
+coverage/*
+dist/*
