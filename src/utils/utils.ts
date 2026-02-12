@@ -1,7 +1,7 @@
 import type { Response } from "express"
 
 export function resJson(res: Response, statusCode: number, data: any) {
-  res.status(statusCode).send(JSON.stringify(data))
+  res.status(statusCode).json(data)
 }
 
 export function idGenerator(prefix:string): string{

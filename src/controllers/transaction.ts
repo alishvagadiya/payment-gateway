@@ -17,7 +17,7 @@ export async function processTransaction(req: Request, res: Response, next: Next
       return;
     }
 
-    if (amount < 0) {
+    if (amount <= 0) {
       logger.warn('Transaction processing failed - invalid amount', {requestId, source_account_id, destination_account_id, amount})
       resJson(res, 400, {
         status_codes: 400,

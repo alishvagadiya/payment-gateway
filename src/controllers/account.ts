@@ -9,7 +9,16 @@ export async function createAccount(req: Request, res: Response, next: NextFunct
     const {initial_balance, account_id} = req.body ?? {};
 
     logger.info('Creating account', {requestId, account_id, initial_balance})
-    if(initial_balance <= 0){
+    if(!account_id || typeof account_id !== 'string'){
+      resJson(res, 400, {
+        status_codes: 400,
+        error_code: 'INVALID_REQUEST',
+        error_message: 'account_id is required'
+      })
+      return;
+    }
+
+    if(initial_balance <= 0 || initial_balance === undefined || initial_balance === null){
       logger.warn('Account creation failed - invalid initial balance', {requestId, account_id, initial_balance})
       resJson(res, 400, {
         status_codes: 400,
@@ -19,14 +28,6 @@ export async function createAccount(req: Request, res: Response, next: NextFunct
       return;
     }
 
-    if(!account_id || typeof account_id !== 'string'){
-      resJson(res, 400, {
-        status_codes: 400,
-        error_code: 'INVALID_REQUEST',
-        error_message: 'account_id is required'
-      })
-      return;
-    }
 
     const dbResponse = await AccountService.createAccount(requestId, account_id,initial_balance);
 

@@ -3,7 +3,7 @@ import { logger } from "../utils/loggers.js";
 export class Account {
   async createAccount(requestId:string, account_id:string,initial_balance: number) {
     logger.info('Creating account', {requestId, account_id, initial_balance})
-    if (initial_balance < 0) {
+    if (initial_balance <= 0) {
       logger.warn('Account creation failed - invalid initial balance', {requestId, account_id, initial_balance})
       throw new Error('Initial Balance Cannot be negative.');
     }

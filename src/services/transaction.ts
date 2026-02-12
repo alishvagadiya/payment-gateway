@@ -44,7 +44,7 @@ export class Transaction {
       await client.query('UPDATE accounts SET balance = balance + $1 where account_id = $2',[amount.toString(),destination_account_id]);
 
       logger.debug('record transaction', {requestId,source_account_id,destination_account_id,amount});
-      const txQuery = `INSERT INTO transactions(source_account_id,destination_account_id,amount) VALUES($1,$2,$3) RETURNING transaction_id,source_account_id,destination_account_id,amount,amount,created_at`;
+      const txQuery = `INSERT INTO transactions(source_account_id,destination_account_id,amount) VALUES($1,$2,$3) RETURNING transaction_id,source_account_id,destination_account_id,amount,created_at`;
 
       const txResult = await client.query(txQuery,[source_account_id,destination_account_id,amount.toString()]);
 
@@ -55,6 +55,7 @@ export class Transaction {
         ...txResult.rows[0]
       }
     } catch (error) {
+      await client.query('ROLLBACK');
       logger.error('Error processing transaction', {
         requestId,
         source_account_id,
