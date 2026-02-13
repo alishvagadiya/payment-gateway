@@ -1,6 +1,27 @@
 # Payment Gateway
 
 A backend REST API for managing accounts and processing financial transactions, built with Node.js, Express, TypeScript, and PostgreSQL.
+# Payment Gateway
+
+A backend REST API for managing accounts and processing financial transactions, built with Node.js, Express, TypeScript, and PostgreSQL.
+
+---
+
+## Table of Contents
+
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Database Setup](#database-setup)
+- [Running](#running)
+- [API Reference](#api-reference)
+  - [V1 — Synchronous](#v1--synchronous)
+  - [V2 — Async Queue](#v2--async-queue)
+- [Testing](#testing)
+- [Project Structure](#project-structure)
+- [Assumptions](#assumptions)
+- [Known Limitations](#known-limitations)
 
 ---
 
@@ -25,7 +46,7 @@ A backend REST API for managing accounts and processing financial transactions, 
 ## Installation
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/alishvagadiya/payment-gateway.git
 cd payment-gateway
 npm install
 ```
@@ -51,7 +72,7 @@ DB_USER=your_pg_user
 DB_PASSWORD=your_pg_password
 DB_NAME=payment_gateway
 
-PORT=8080
+PORT=3000
 
 DB_MAX_CONNECTIONS=25
 DB_IDLE_CONNECTIONS=5
@@ -313,5 +334,17 @@ tests/
     - client -> controller -> service -> db.
   - new approach
     - client -> controller -> queue -> service -> db.
-    - now all transaction are added to in-memory queue and start processing in concurrently (up to DB_MAX_CONNECTIONS parallel worker), when worker completes the next job from queue to fills that slot which prevents db connection pool exhaustion under high load.
-    - end point will return job id, which client poll and fetch result after timeinterval.
+    - now all transaction are added to in-memory queue and start processing in concurrently (up to DB_MAX_CONNECTIONS parallel worker), when worker completes the next job from queue fills that slot which prevents db connection pool exhaustion under high load.
+    - API endpoint will return job id, which client poll and fetch result after timeinterval.
+
+---
+
+## Known Limitations
+
+- In-memory queue (jobs lost on server restart)
+- No authentication/authorization
+- No rate limiting
+- Single-instance deployment
+- File-based logging (not suitable for distributed systems)
+
+---
